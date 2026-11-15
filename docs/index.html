@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101715">
+<meta name="description" content="RizzoCharge is a native macOS menu bar app for battery health, charging status, and estimated power flow on supported Macs.">
+<meta property="og:title" content="RizzoCharge for macOS">
+<meta property="og:description" content="See where your Mac’s power goes.">
+<meta property="og:image" content="https://johnrizzetto.github.io/RizzoCharge/assets/dashboard.webp">
+<meta property="og:url" content="https://johnrizzetto.github.io/RizzoCharge/">
+<link rel="icon" href="assets/icon.png">
+<title>RizzoCharge for macOS</title>
+<style>
+:root{color-scheme:dark;--bg:#101715;--panel:#16201c;--text:#f0f5ef;--muted:#b1c2b8;--line:#34463d;--accent:#a8f7bb;--mono:ui-monospace,SFMono-Regular,Consolas,monospace;--body:-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--text);font:1rem/1.55 var(--body)}
+a{color:inherit}a:focus-visible{outline:2px solid var(--accent);outline-offset:5px}img{display:block;max-width:100%}
+.wrap{width:min(1136px,calc(100% - 64px));margin:auto}
+header{border-bottom:1px solid var(--line)}nav{display:flex;align-items:center;justify-content:space-between;gap:18px;min-height:76px}
+.brand{display:inline-flex;gap:10px;align-items:center;text-decoration:none;font-weight:730}.brand img{width:34px;height:34px}.navlink{color:var(--muted);text-underline-offset:4px}
+.hero{position:relative;overflow:hidden;background:radial-gradient(ellipse at 78% 55%,#244332 0,transparent 55%)}
+.hero-inner{display:grid;grid-template-columns:1.04fr 1fr;align-items:center;gap:56px;padding-block:74px 64px}
+.kicker{color:var(--accent);font:500 .76rem/1.5 var(--mono);letter-spacing:.10em;text-transform:uppercase;margin:0 0 18px}
+h1,h2,h3,p,figure{margin-top:0}h1{font-size:clamp(3.2rem,6.5vw,6.15rem);letter-spacing:-.05em;line-height:.94;margin-bottom:25px;font-weight:740;max-width:9ch;text-wrap:balance}
+.intro{font-size:clamp(1.05rem,1.65vw,1.28rem);max-width:38ch;color:var(--muted);margin-bottom:29px}.actions{display:flex;gap:13px;flex-wrap:wrap}
+.button{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 17px;border:1px solid var(--line);border-radius:8px;text-decoration:none;font-weight:700}
+.primary{background:var(--accent);color:#0b2414;border-color:var(--accent)}.primary:hover{background:#d0ffda}.secondary:hover{border-color:var(--accent)}
+.meta{margin:14px 0 0;font-size:.82rem;color:var(--muted)}figure{margin:0;width:100%;max-width:491px;justify-self:end}figure img{width:100%;height:auto;border-radius:12px;border:1px solid #596962;box-shadow:0 18px 50px #0008}figcaption{font-size:.8rem;color:var(--muted);margin-top:12px}
+.features{border-block:1px solid var(--line);background:var(--panel)}.feature-grid{display:grid;grid-template-columns:repeat(3,1fr);padding-block:32px;gap:28px}
+.feature-grid article+article{border-left:1px solid var(--line);padding-left:28px}h3{font-size:1.08rem;margin-bottom:6px}.feature-grid p,.details p{margin-bottom:0;color:var(--muted)}
+.details{display:grid;grid-template-columns:.85fr 1.15fr;gap:54px;padding-block:60px}.details h2{font-size:clamp(2rem,4vw,3.15rem);line-height:1;letter-spacing:-.055em;margin-bottom:14px}.details ol{margin:0;padding-left:1.25em;color:var(--muted)}.details li+li{margin-top:10px}.details a{color:var(--accent);text-underline-offset:4px}
+footer{border-top:1px solid var(--line);color:var(--muted);font-size:.88rem}footer .wrap{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;padding-block:23px}footer a{text-underline-offset:4px}
+@media(max-width:800px){.hero-inner{gap:30px;padding-block:46px}.wrap{width:min(100% - 36px,1136px)}h1{font-size:clamp(3rem,8.5vw,5rem)}}
+@media(max-width:630px){.hero-inner,.details,.feature-grid{grid-template-columns:1fr}.hero-inner,.details{gap:28px}figure{justify-self:start}.feature-grid{gap:19px}.feature-grid article+article{border-left:0;border-top:1px solid var(--line);padding:16px 0 0}.details{padding-block:40px}nav{min-height:64px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body id="top">
+<header><nav class="wrap" aria-label="Main navigation">
+<a class="brand" href="#top"><img src="assets/icon.png" alt="" width="34" height="34">RizzoCharge</a>
+<a class="navlink" href="https://github.com/johnrizzetto/RizzoCharge">GitHub ↗</a>
+</nav></header>
+<main>
+<section class="hero" aria-labelledby="title"><div class="wrap hero-inner">
+<div>
+<p class="kicker">Battery monitor for macOS</p>
+<h1 id="title">See where your Mac’s power goes.</h1>
+<p class="intro">Check charging status in the menu bar, then open the dashboard for estimated power flow, cycle count and battery capacity.</p>
+<div class="actions">
+<a class="button primary" href="https://github.com/johnrizzetto/RizzoCharge/releases/download/v0.2.1/RizzoCharge-macOS-unsigned.zip">Download for Mac&nbsp; ↓</a>
+<a class="button secondary" href="https://github.com/johnrizzetto/RizzoCharge">View source</a>
+</div>
+<p class="meta">v0.2.1 · Apple silicon · Ad-hoc signed</p>
+</div>
+<figure>
+<img src="assets/dashboard.webp" alt="RizzoCharge dashboard at 80 percent. Power flow shows estimated cable input and Mac use while the battery is holding its charge." width="1319" height="1440" fetchpriority="high">
+<figcaption>RizzoCharge running on a MacBook Air M4.</figcaption>
+</figure>
+</div></section>
+<section class="features" aria-label="Features"><div class="wrap feature-grid">
+<article><h3>Check the menu bar</h3><p>Read battery percentage and charging status without opening System Settings.</p></article>
+<article><h3>Follow the power flow</h3><p>See AC input and Mac use estimates when the telemetry agrees on supported hardware.</p></article>
+<article><h3>Inspect battery capacity</h3><p>See cycle count and the full-charge-to-design ratio alongside the adapter rating.</p></article>
+</div></section>
+<section class="wrap details" aria-labelledby="install"><div>
+<h2 id="install">Install on your Mac.</h2>
+<p>Tested on MacBook Air M4 (Mac16,12) with macOS 27.2.1. Cable input and Mac-use estimates are currently limited to this model on macOS 27.</p>
+</div>
+<ol>
+<li>Download and unzip <strong>RizzoCharge-macOS-unsigned.zip</strong>.</li>
+<li>Move <strong>RizzoCharge.app</strong> to Applications, then open it. The build is ad-hoc signed and has no Apple notarization.</li>
+<li>Prefer to build from source? Follow the <a href="https://github.com/johnrizzetto/RizzoCharge#build-locally">build instructions</a>.</li>
+</ol>
+</section>
+</main>
+<footer><div class="wrap"><span>RizzoCharge by John Rizzetto</span><a href="https://github.com/johnrizzetto/RizzoCharge/releases">Release notes and checksums</a></div></footer>
+</body>
+</html>
