@@ -79,3 +79,14 @@ extension TelemetryTests {
         XCTAssertNil(estimate(.charging, pack: 10))
     }
 }
+
+extension TelemetryTests {
+    func testReportedChargingWattsValidateUnitsAndAgreement() {
+        XCTAssertEqual(reportedChargingWatts(milliwatts: 40_514, calculated: 40.515, state: .charging), 40.514)
+        XCTAssertEqual(reportedChargingWatts(milliwatts: 40_514, calculated: nil, state: .charging), 40.514)
+        XCTAssertNil(reportedChargingWatts(milliwatts: nil, calculated: 40.515, state: .charging))
+        XCTAssertNil(reportedChargingWatts(milliwatts: 0, calculated: 40.515, state: .charging))
+        XCTAssertNil(reportedChargingWatts(milliwatts: 40_514, calculated: 5, state: .charging))
+        XCTAssertNil(reportedChargingWatts(milliwatts: 40_514, calculated: nil, state: .connected))
+    }
+}

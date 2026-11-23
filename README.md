@@ -4,7 +4,7 @@
 <p align="center"><a href="https://johnrizzetto.github.io/RizzoCharge/">Project site</a> · <a href="https://github.com/johnrizzetto/RizzoCharge/releases/latest">Download</a> · <a href="#build-locally">Build locally</a></p>
 <p align="center"><img src="docs/assets/dashboard.webp" alt="RizzoCharge dashboard showing charge, power flow and battery details" width="520"></p>
 
-RizzoCharge lives in the menu bar. Open the dashboard for cycle count, pack power, and capacity. If a menu-bar manager hides the icon, reveal its hidden items or reopen RizzoCharge from Finder. Press Command-R in the dashboard to refresh.
+RizzoCharge shows charge level, percentage and a charging bolt inside a colored menu-bar battery. The popover shows the power going into the battery while it charges. Open the dashboard for cycle count, pack power, and capacity. If a menu-bar manager hides the icon, reveal its hidden items or reopen RizzoCharge from Finder. Press Command-R in the dashboard to refresh.
 
 ## Install
 
@@ -19,7 +19,7 @@ The app polls every five seconds and refreshes on IOKit power-source changes and
 | Charge and power state | Documented IOKit power-source description, internal battery only | Percent from current/max and states from power source plus charging flag. Unknown or contradictory flags do not imply battery power. |
 | Cycle count | AppleSmartBattery CycleCount | OS registry count; matched System Information locally. |
 | Adapter rating | Documented IOPSCopyExternalPowerAdapterDetails Watts | Attached adapter rating in W; matched System Information. This is not real-time input or wall draw. |
-| Battery power | AppleSmartBattery Voltage and signed InstantAmperage | Pack estimate assuming mV and mA. Magnitude and direction are provisional. A value incompatible with the OS state is suppressed. Zero appears only if readings explicitly yield zero. |
+| Battery power | AppleSmartBattery BatteryData BatteryPower, or Voltage × InstantAmperage | Uses reported pack wattage while charging on Mac16,12 with macOS 27 when the value is plausible and agrees with voltage × current if available. Otherwise it estimates pack power from voltage and signed current. A value incompatible with the OS state is suppressed. |
 | Full-charge and design capacity | AppleSmartBattery BatteryData FullChargeCapacity and DesignCapacity | Registry mAh estimates; corroborated by coconutBattery on Mac16,12. Ratio is a calculation, separate from Apple's health metric. |
 | Apple battery health | System Information or Battery Settings | The documented IOKit description did not expose this value on the test Mac. View it in macOS. |
 | Temperature | AppleSmartBatteryPack BatteryData Temperature | Undocumented raw candidate, excluded from the interface and all decisions. |

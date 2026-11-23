@@ -148,7 +148,7 @@ struct Dashboard: View {
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 175), spacing: 10)], alignment: .leading, spacing: 10) {
                         Metric("Cycle count", sample?.cycles.map(String.init), "Reported by macOS")
                         Metric("Adapter rating", sample?.adapterRating.map { watts($0, decimals: 0) }, "Rated wattage")
-                        Metric("Battery power", sample?.packPower.map { watts(abs($0)) }, powerDetail(sample?.packPower))
+                        Metric("Battery power", sample?.packPower.map { watts(abs($0)) }, powerDetail(sample))
                         Metric("Full-charge capacity", sample?.fullCapacity.map { "\($0.formatted()) mAh" }, "Registry estimate")
                         Metric("Design capacity", sample?.designCapacity.map { "\($0.formatted()) mAh" }, "Registry estimate")
                         Metric("Capacity ratio", sample?.capacityRatio.map { $0.formatted(.number.precision(.fractionLength(1))) + "%" }, "Full-charge ÷ design")
@@ -156,7 +156,7 @@ struct Dashboard: View {
                     DisclosureGroup("Reading sources and limits", isExpanded: $showSources) {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Charge, power state and adapter rating come from macOS. RizzoCharge polls every 5 seconds and refreshes on power changes and wake. The timestamp is when the app read the data. Battery firmware can update more slowly.")
-                            Text("Battery power estimates pack flow from registry voltage and signed current. Cable input and Mac use are estimates from undocumented macOS fields on supported hardware. They appear when the readings agree with the input voltage, current and pack power. The estimates have not been checked against a power meter.")
+                            Text("Battery power uses reported pack watts on supported hardware when available. Otherwise, it estimates pack flow from voltage and current. Cable input and Mac use are estimates from undocumented macOS fields on supported hardware. They appear when the readings agree with the input voltage, current and pack power. The estimates have not been checked against a power meter.")
                             Text("Capacity uses registry estimates. For Apple’s maximum capacity and condition, open Battery Health in System Settings.")
                             Text("The temperature sensor and its scale are unverified, so RizzoCharge does not show a temperature or issue heat alerts.")
                         }.font(.callout).foregroundStyle(.secondary).padding(.top, 9)
@@ -180,10 +180,11 @@ struct Dashboard: View {
 
     }
 
-    private func powerDetail(_ value: Double?) -> String {
-        guard let value else { return "Pack estimate" }
+    private func powerDetail(_ sample: BatterySample?) -> String {
+        guard let value = sample?.packPower else { return "Pack estimate" }
         if value == 0 { return "No net flow reported" }
-        return value > 0 ? "Into battery · estimate" : "From battery · estimate"
+        let direction = value > 0 ? "Into battery" : "From battery"
+        return sample?.reportedPackPower != nil ? direction : direction + " · estimate"
     }
 }
 
@@ -232,7 +233,9 @@ private struct FlowPanel: View {
 
     private var batteryText: String {
         switch state {
-        case .charging: return "Charging"
+        case .charging:
+            guard let sample, let power = sample.packPower else { return "Charging" }
+            return sample.reportedPackPower != nil ? watts(power) + " in" : estimatedWatts(power) + " in"
         case .connected: return "Not charging"
         case .battery: return "Supplying Mac"
         case .unknown: return "Unknown"

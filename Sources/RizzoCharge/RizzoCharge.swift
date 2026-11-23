@@ -111,22 +111,61 @@ import SwiftUI
     }
 }
 
+func batteryFillRect(in interior: CGRect, percent: Int?) -> CGRect {
+    var fill = interior
+    fill.size.width *= CGFloat(min(100, max(0, percent ?? 0))) / 100
+    return fill
+}
+
 private func statusItemImage(_ sample: BatterySample?) -> NSImage {
-    let value = sample?.percent.map { "\($0)%" } ?? ""
-    let font = NSFont.monospacedDigitSystemFont(ofSize: 12, weight: .medium)
-    let attributes: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: NSColor.black]
-    let text = value as NSString
-    let width = value.isEmpty ? 20 : 23 + ceil(text.size(withAttributes: attributes).width)
-    let symbol = sample?.state == .charging ? "battery.100percent.bolt" : "battery.75percent"
-    let icon = NSImage(systemSymbolName: symbol, accessibilityDescription: nil)?
-        .withSymbolConfiguration(.init(pointSize: 13, weight: .medium))
-    let image = NSImage(size: NSSize(width: width, height: 22), flipped: false) { _ in
-        if let icon {
-            icon.draw(in: NSRect(x: 0, y: (22 - icon.size.height) / 2, width: icon.size.width, height: icon.size.height))
+    let charging = sample?.state == .charging
+    let percent = sample?.percent
+    let text = (percent.map { "\($0)%" } ?? "?") as NSString
+    let attributes: [NSAttributedString.Key: Any] = [
+        .font: NSFont.monospacedDigitSystemFont(ofSize: 11, weight: .semibold),
+        .foregroundColor: NSColor.white
+    ]
+    let fillColor: NSColor
+    switch (charging, percent ?? 0) {
+    case (_, 0...10): fillColor = NSColor(srgbRed: 0.69, green: 0.16, blue: 0.21, alpha: 1)
+    case (_, 11...20): fillColor = NSColor(srgbRed: 0.56, green: 0.34, blue: 0.06, alpha: 1)
+    case (true, _): fillColor = NSColor(srgbRed: 0.04, green: 0.49, blue: 0.29, alpha: 1)
+    default: fillColor = NSColor(srgbRed: 0.08, green: 0.39, blue: 0.62, alpha: 1)
+    }
+
+    let body = CGRect(x: 1, y: 3, width: 48, height: 16)
+    let interior = body.insetBy(dx: 1.5, dy: 1.5)
+    return NSImage(size: NSSize(width: 53, height: 22), flipped: false) { _ in
+        let border = NSColor(srgbRed: 0.60, green: 0.64, blue: 0.67, alpha: 1)
+        border.setFill()
+        NSBezierPath(roundedRect: body, xRadius: 4, yRadius: 4).fill()
+        NSBezierPath(roundedRect: CGRect(x: 49.5, y: 8, width: 2.5, height: 6),
+                     xRadius: 1.25, yRadius: 1.25).fill()
+        let track = NSBezierPath(roundedRect: interior, xRadius: 2.5, yRadius: 2.5)
+        NSColor(srgbRed: 0.15, green: 0.18, blue: 0.21, alpha: 1).setFill()
+        track.fill()
+        NSGraphicsContext.saveGraphicsState()
+        track.addClip()
+        fillColor.setFill()
+        NSBezierPath.fill(batteryFillRect(in: interior, percent: percent))
+        NSGraphicsContext.restoreGraphicsState()
+
+        let textSize = text.size(withAttributes: attributes)
+        let startX = body.midX - (textSize.width + (charging ? 10 : 0)) / 2
+        if charging {
+            let bolt = NSBezierPath()
+            bolt.move(to: CGPoint(x: startX + 5, y: 16))
+            bolt.line(to: CGPoint(x: startX, y: 10))
+            bolt.line(to: CGPoint(x: startX + 3, y: 10))
+            bolt.line(to: CGPoint(x: startX + 2, y: 6))
+            bolt.line(to: CGPoint(x: startX + 7, y: 12))
+            bolt.line(to: CGPoint(x: startX + 4, y: 12))
+            bolt.close()
+            NSColor.white.setFill()
+            bolt.fill()
         }
-        text.draw(at: NSPoint(x: 23, y: 4), withAttributes: attributes)
+        text.draw(at: CGPoint(x: startX + (charging ? 10 : 0), y: body.midY - textSize.height / 2),
+                  withAttributes: attributes)
         return true
     }
-    image.isTemplate = true
-    return image
 }

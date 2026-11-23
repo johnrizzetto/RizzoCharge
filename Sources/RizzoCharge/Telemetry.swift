@@ -33,6 +33,7 @@ struct BatterySample: Encodable {
     var voltage: Double?
     var current: Double?
     var packPower: Double?
+    var reportedPackPower: Double?
     var fullCapacity: Int?
     var designCapacity: Int?
     var temperatureCandidate: Double?
@@ -87,6 +88,14 @@ func consistentBatteryWatts(_ watts: Double?, state: PowerState) -> Double? {
     }
 }
 
+func reportedChargingWatts(milliwatts: Double?, calculated: Double?, state: PowerState) -> Double? {
+    // The registry field's units were checked against charging telemetry on this Mac.
+    guard state == .charging, let milliwatts, (1...150_000).contains(milliwatts) else { return nil }
+    let watts = milliwatts / 1000
+    if let calculated, abs(watts - calculated) > max(1, watts * 0.08) { return nil }
+    return watts
+}
+
 /// Undocumented, same-origin Mac estimates. Consistency checks reject suspect
 /// frames; they cannot establish accuracy or a hardware sample timestamp.
 struct ACPowerEstimate: Encodable {
@@ -114,7 +123,7 @@ struct ACPowerEstimate: Encodable {
 }
 
 enum BatteryReader {
-    private static let supportsACEstimates: Bool = {
+    private static let supportsRegistryPower: Bool = {
         guard ProcessInfo.processInfo.operatingSystemVersion.majorVersion == 27 else { return false }
         var size = 0
         guard sysctlbyname("hw.model", nil, &size, nil, 0) == 0, size > 0 else { return false }
@@ -164,11 +173,19 @@ enum BatteryReader {
             let ma = signedMilliamps(property(service, "InstantAmperage") as? NSNumber)
             result.voltage = mv.map { $0 / 1000 }
             result.current = ma.map { $0 / 1000 }
-            result.packPower = consistentBatteryWatts(batteryWatts(millivolts: mv, milliamps: ma), state: result.state)
+            let calculated = batteryWatts(millivolts: mv, milliamps: ma)
+            if supportsRegistryPower {
+                result.reportedPackPower = reportedChargingWatts(
+                    milliwatts: number(data?["BatteryPower"])?.doubleValue,
+                    calculated: calculated,
+                    state: result.state
+                )
+            }
+            result.packPower = result.reportedPackPower ?? consistentBatteryWatts(calculated, state: result.state)
             let candidates = property(service, "PowerTelemetryData") as? [String: Any]
             result.systemPowerInRaw = number(candidates?["SystemPowerIn"])?.doubleValue
             result.systemLoadRaw = number(candidates?["SystemLoad"])?.doubleValue
-            if supportsACEstimates {
+            if supportsRegistryPower {
                 result.acPowerEstimate = ACPowerEstimate(
                     state: result.state, inputMilliwatts: result.systemPowerInRaw,
                     loadMilliwatts: result.systemLoadRaw,
