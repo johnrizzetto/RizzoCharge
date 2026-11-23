@@ -28,6 +28,8 @@ struct BatterySample: Encodable {
     var at: Date
     var state: PowerState
     var percent: Int?
+    var minutesToFull: Int?
+    var minutesToEmpty: Int?
     var cycles: Int?
     var adapterRating: Double?
     var voltage: Double?
@@ -40,6 +42,14 @@ struct BatterySample: Encodable {
     var systemPowerInRaw: Double?
     var systemLoadRaw: Double?
     var acPowerEstimate: ACPowerEstimate?
+
+    var minutesTo80Percent: Int? {
+        guard state == .charging, let percent, (0...100).contains(percent) else { return nil }
+        if percent >= 80 { return 0 }
+        guard let minutesToFull else { return nil }
+        // Use the share of the remaining charge. Charging can slow near full.
+        return Int(ceil(Double(minutesToFull) * Double(80 - percent) / Double(100 - percent)))
+    }
 
     var capacityRatio: Double? {
         guard let fullCapacity, let designCapacity, designCapacity > 0 else { return nil }
@@ -61,6 +71,12 @@ private func number(_ value: Any?) -> NSNumber? {
     guard let n = value as? NSNumber, CFGetTypeID(n) != CFBooleanGetTypeID(),
           n.doubleValue.isFinite else { return nil }
     return n
+}
+
+func timeEstimateMinutes(_ value: Any?) -> Int? {
+    guard let minutes = number(value)?.doubleValue,
+          (0..<65_535).contains(minutes), minutes.rounded() == minutes else { return nil }
+    return Int(minutes)
 }
 
 func signedMilliamps(_ value: NSNumber?) -> Double? {
@@ -152,6 +168,14 @@ enum BatteryReader {
                 let flag = d[kIOPSIsChargingKey] as? NSNumber
                 let charging = flag.flatMap { CFGetTypeID($0) == CFBooleanGetTypeID() ? $0.boolValue : nil }
                 result.state = PowerState(ac: ac, charging: charging)
+                switch result.state {
+                case .charging:
+                    result.minutesToFull = timeEstimateMinutes(d[kIOPSTimeToFullChargeKey])
+                case .battery:
+                    result.minutesToEmpty = timeEstimateMinutes(d[kIOPSTimeToEmptyKey])
+                case .connected, .unknown:
+                    break
+                }
                 if ac == true,
                    let details = IOPSCopyExternalPowerAdapterDetails()?.takeRetainedValue() as? [String: Any],
                    let rating = number(details[kIOPSPowerAdapterWattsKey])?.doubleValue,

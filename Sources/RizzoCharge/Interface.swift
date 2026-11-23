@@ -100,6 +100,7 @@ struct MenuContent: View {
         SampleView(monitor: monitor) { sample, status in
             VStack(alignment: .leading, spacing: 13) {
                 ChargeHeader(sample: sample, status: status, compact: true)
+                BatteryTimeEstimates(sample: sample)
                 FlowPanel(sample: sample, compact: true)
                 if let rating = sample?.adapterRating {
                     HStack {
@@ -126,6 +127,40 @@ struct MenuContent: View {
                 if reduceTransparency { Color(nsColor: .windowBackgroundColor) }
             }
         }
+    }
+}
+
+private struct BatteryTimeEstimates: View {
+    let sample: BatterySample?
+
+    var body: some View {
+        VStack(spacing: 6) {
+            switch sample?.state {
+            case .charging:
+                estimateRow("Estimated time to 80%", value: sample?.minutesTo80Percent, reached: (sample?.percent ?? 0) >= 80)
+                estimateRow("Estimated time to full", value: sample?.minutesToFull, reached: sample?.percent == 100)
+            case .battery:
+                estimateRow("Estimated battery time left", value: sample?.minutesToEmpty)
+            default:
+                EmptyView()
+            }
+        }
+    }
+
+    private func estimateRow(_ title: String, value: Int?, reached: Bool = false) -> some View {
+        HStack {
+            Text(title).foregroundStyle(.secondary)
+            Spacer()
+            Text(reached ? "Reached" : duration(value)).monospacedDigit()
+        }
+        .font(.subheadline)
+        .accessibilityElement(children: .combine)
+    }
+
+    private func duration(_ minutes: Int?) -> String {
+        guard let minutes else { return "Calculating…" }
+        if minutes == 0 { return "<1 min" }
+        return Duration.seconds(minutes * 60).formatted(.units(allowed: [.hours, .minutes], width: .abbreviated))
     }
 }
 

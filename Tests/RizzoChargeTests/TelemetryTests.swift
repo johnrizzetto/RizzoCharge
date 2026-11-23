@@ -90,3 +90,26 @@ extension TelemetryTests {
         XCTAssertNil(reportedChargingWatts(milliwatts: 40_514, calculated: nil, state: .connected))
     }
 }
+
+extension TelemetryTests {
+    func testTimeEstimatesKeepValidMinutesAndRejectUnknownValues() {
+        XCTAssertEqual(timeEstimateMinutes(112), 112)
+        XCTAssertEqual(timeEstimateMinutes(0), 0)
+        XCTAssertNil(timeEstimateMinutes(nil))
+        XCTAssertNil(timeEstimateMinutes(-1))
+        XCTAssertNil(timeEstimateMinutes(65_535))
+        XCTAssertNil(timeEstimateMinutes(4.5))
+        XCTAssertNil(timeEstimateMinutes(true))
+    }
+
+    func testTimeTo80UsesRemainingShareOfFullChargeEstimate() {
+        var sample = BatterySample(at: .now, state: .charging, percent: 32, minutesToFull: 112)
+        XCTAssertEqual(sample.minutesTo80Percent, 80)
+        sample.minutesToFull = nil
+        XCTAssertNil(sample.minutesTo80Percent)
+        sample.percent = 80
+        XCTAssertEqual(sample.minutesTo80Percent, 0)
+        sample.state = .battery
+        XCTAssertNil(sample.minutesTo80Percent)
+    }
+}
